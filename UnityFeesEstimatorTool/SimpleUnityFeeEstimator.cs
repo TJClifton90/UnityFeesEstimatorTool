@@ -1,6 +1,6 @@
-﻿namespace UnityFeesEstimatorTool
+﻿namespace TJClifton.UnityFeesEstimatorTool
 {
-    class SimpleUnityFeeEstimator
+    public class SimpleUnityFeeEstimator
     {
         public static decimal CalculateUnityAdminFeesInUSD(UnityLicenseType licenseType, uint totalInstalls)
         {

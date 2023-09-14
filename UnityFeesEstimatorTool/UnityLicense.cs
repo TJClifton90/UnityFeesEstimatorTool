@@ -1,6 +1,6 @@
-﻿namespace UnityFeesEstimatorTool
+﻿namespace TJClifton.UnityFeesEstimatorTool
 {
-    class UnityLicense
+    public class UnityLicense
     {
         public string Name => LicenseType.ToString();
 

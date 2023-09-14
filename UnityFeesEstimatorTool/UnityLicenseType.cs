@@ -1,4 +1,4 @@
-﻿namespace UnityFeesEstimatorTool
+﻿namespace TJClifton.UnityFeesEstimatorTool
 {
     public enum UnityLicenseType
     {

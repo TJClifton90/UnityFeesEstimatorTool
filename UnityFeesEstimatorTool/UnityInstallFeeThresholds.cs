@@ -1,6 +1,6 @@
-﻿namespace UnityFeesEstimatorTool
+﻿namespace TJClifton.UnityFeesEstimatorTool
 {
-    class UnityInstallFeeThresholds
+    public class UnityInstallFeeThresholds
     {
         public readonly IList<UnityInstallFeeData> Fees;
 

@@ -1,6 +1,6 @@
-﻿namespace UnityFeesEstimatorTool
+﻿namespace TJClifton.UnityFeesEstimatorTool
 {
-    class FreeToPlayCostEstimator
+    public class FreeToPlayCostEstimator
     {
         public readonly IList<FreeToPlayUnityEstimatorMonthlyData> MonthlyData;
 

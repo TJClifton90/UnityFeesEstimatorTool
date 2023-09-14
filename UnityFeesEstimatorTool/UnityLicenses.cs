@@ -1,6 +1,6 @@
-﻿namespace UnityFeesEstimatorTool
+﻿namespace TJClifton.UnityFeesEstimatorTool
 {
-    static class UnityLicenses
+    public static class UnityLicenses
     {
         public static Dictionary<UnityLicenseType, UnityLicense> LicensesByType = new Dictionary<UnityLicenseType, UnityLicense>()
         {

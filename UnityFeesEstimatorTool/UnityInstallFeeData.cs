@@ -1,6 +1,6 @@
-﻿namespace UnityFeesEstimatorTool
+﻿namespace TJClifton.UnityFeesEstimatorTool
 {
-    class UnityInstallFeeData
+    public class UnityInstallFeeData
     {
         public uint MinimumInstallsOverThreshold { get; private set; }
         public uint MaximumInstallsOverThreshold { get; private set; }

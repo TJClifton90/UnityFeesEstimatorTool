@@ -1,6 +1,6 @@
-﻿namespace UnityFeesEstimatorTool
+﻿namespace TJClifton.UnityFeesEstimatorTool
 {
-    class FreeToPlayUnityEstimatorMonthlyData
+    public class FreeToPlayUnityEstimatorMonthlyData
     {
         public uint NumberOfInstalls = 100;
         public decimal LTV = 0.01M;

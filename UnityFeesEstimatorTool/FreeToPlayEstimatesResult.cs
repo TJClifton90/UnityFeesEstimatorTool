@@ -1,6 +1,6 @@
-﻿namespace UnityFeesEstimatorTool
+﻿namespace TJClifton.UnityFeesEstimatorTool
 {
-    class FreeToPlayEstimatesResult
+    public class FreeToPlayEstimatesResult
     {
         public readonly uint TotalNumberOfInstalls;
         public readonly decimal AverageRevenuePerInstallUSD;
