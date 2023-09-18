@@ -15,7 +15,6 @@
 
             uint totalNumberOfInstalls = 0;
             uint installsWithFeePaid = 0;
-            uint installsWithoutFeePaid = 0;
             decimal totalGrossRevenueUSD = 0;
 
             var costResults = new List<FreeToPlayEstimatesResult>();
@@ -44,18 +43,21 @@
                     }
                 }
 
-                decimal unityInstallFeeCosts = CalculateMonthlyUnityAdminFeesInUSD(license, totalNumberOfInstalls, installsWithFeePaid, installsWithoutFeePaid, totalGrossRevenueUSD);
+                uint numberOfInstallsOverThreshold = totalNumberOfInstalls - installsWithFeePaid;
+
+                var feesData = CalculateMonthlyUnityAdminFeesInUSD(license, totalNumberOfInstalls, numberOfInstallsOverThreshold, totalGrossRevenueUSD);
+                installsWithFeePaid += feesData.numberOfFeesPaid;
 
                 decimal unityLicenseFeeCosts = MonthlyData[i].NumberOfEmployees * license.GetMonthlyLicenseCosts(false);
                 var monthlyEmployeeCostsUSD = (MonthlyData[i].NumberOfEmployees * MonthlyData[i].TotalEmployerSalaries) / 12M;
 
-                var totalMonthlyCostsUSD = unityInstallFeeCosts + unityLicenseFeeCosts + monthlyEmployeeCostsUSD;
+                var totalMonthlyCostsUSD = feesData.totalFeeCostsUSD + unityLicenseFeeCosts + monthlyEmployeeCostsUSD;
 
                 var monthlyNettRevenueUSD = monthlyGrossRevenue - totalMonthlyCostsUSD;
                 var totalNettRevenueUSD = i > 0 ? costResults[i - 1].TotalNettRevenueUSD + monthlyNettRevenueUSD : monthlyNettRevenueUSD;
 
                 var result = new FreeToPlayEstimatesResult(totalNumberOfInstalls, averageRevenuePerInstallUSD, monthlyGrossRevenue, totalGrossRevenueUSD,
-                                                                        unityInstallFeeCosts, unityLicenseFeeCosts, monthlyEmployeeCostsUSD, monthlyNettRevenueUSD, totalNettRevenueUSD);
+                                                           feesData.totalFeeCostsUSD, unityLicenseFeeCosts, monthlyEmployeeCostsUSD, monthlyNettRevenueUSD, totalNettRevenueUSD);
 
                 costResults.Add(result);
             }
@@ -88,38 +90,79 @@
         }
 
 
-        public static decimal CalculateMonthlyUnityAdminFeesInUSD(UnityLicenseType licenseType, uint totalNumberOfInstalls, uint installsWithFeePaid, uint installsWithoutFeePaid, decimal totalGrossRevenueUSD)
+        public static (decimal totalFeeCostsUSD, uint numberOfFeesPaid) CalculateMonthlyUnityAdminFeesInUSD(UnityLicenseType licenseType, uint totalNumberOfInstalls, uint numberOfInstallsOverThreshold, decimal totalGrossRevenueUSD)
         {
             var licenseData = UnityLicenses.LicensesByType[licenseType];
 
-            return CalculateMonthlyUnityAdminFeesInUSD(licenseData, totalNumberOfInstalls, installsWithFeePaid, installsWithoutFeePaid, totalGrossRevenueUSD);
+            return CalculateMonthlyUnityAdminFeesInUSD(licenseData, totalNumberOfInstalls, numberOfInstallsOverThreshold, totalGrossRevenueUSD);
         }
 
-        public static decimal CalculateMonthlyUnityAdminFeesInUSD(UnityLicense licenseData, uint totalNumberOfInstalls, uint installsWithFeePaid, uint installsWithoutFeePaid, decimal totalGrossRevenueUSD)
+        public static (decimal totalFeeCostsUSD, uint numberOfFeesPaid) CalculateMonthlyUnityAdminFeesInUSD(UnityLicense licenseData, uint totalNumberOfInstalls, uint numberOfInstallsOverThreshold, decimal totalGrossRevenueUSD)
         {
             if (HasFeeThresholdReachedBeenReached(licenseData, totalNumberOfInstalls, totalGrossRevenueUSD))
             {
-                decimal totalFeeCostsUSD = 0;
-                for (uint installNumber = installsWithFeePaid; installNumber < totalNumberOfInstalls; ++installNumber)
-                {
-                    decimal feeCostUSD = 0;
-                    foreach (var feeData in licenseData.InstallFeeThresholds.Fees)
-                    {
-                        if (installNumber >= feeData.MinimumInstallsOverThreshold && installNumber <= feeData.MaximumInstallsOverThreshold)
-                        {
-                            feeCostUSD = feeData.InstallFeeUSD;
-                            break;
-                        }
-                    }
+                //decimal totalFeeCostsUSD = 0;
+                //uint installNumber = installsWithFeePaid;
 
-                    totalFeeCostsUSD += feeCostUSD;
+                //foreach (var feeData in licenseData.InstallFeeThresholds.Fees)
+                //{
+                //    if (installNumber >= feeData.MinimumInstallsOverThreshold && installNumber <= feeData.MaximumInstallsOverThreshold)
+                //    {
+                //        uint numberOfFeesToPay = (uint)MathF.Min((feeData.MaximumInstallsOverThreshold - installNumber), installsWithoutFeePaid);
+
+                //        totalFeeCostsUSD += numberOfFeesToPay * feeData.InstallFeeUSD;
+                //    }
+                //}
+
+                //iterate over each fee data
+                //is current install amount in that threshold
+                //add relevant number
+                //move to next fee info
+
+                decimal totalFeeCostsUSD = 0;
+                uint totalFeesPaid = 0;
+
+                foreach (var feeData in licenseData.InstallFeeThresholds.Fees)
+                {
+                    uint numberOfInstallsInTHresholdRange = (feeData.MaximumInstallsOverThreshold + 1) - feeData.MinimumInstallsOverThreshold;
+
+                    var numberOfInstallsToChargeAtCurrentFee = (uint)MathF.Min(numberOfInstallsOverThreshold, numberOfInstallsInTHresholdRange);
+
+                    totalFeeCostsUSD += numberOfInstallsToChargeAtCurrentFee * feeData.InstallFeeUSD;
+                    totalFeesPaid += numberOfInstallsToChargeAtCurrentFee;
+
+                    numberOfInstallsOverThreshold -= numberOfInstallsToChargeAtCurrentFee;
                 }
 
-                return totalFeeCostsUSD;
+                return (totalFeeCostsUSD, totalFeesPaid);
+
+
+                //decimal totalFeeCostsUSD = 0;
+                //for (uint installNumber = installsWithFeePaid; installNumber < totalNumberOfInstalls; ++installNumber)
+                //{
+                //    decimal feeCostUSD = 0;
+                //    foreach (var feeData in licenseData.InstallFeeThresholds.Fees)
+                //    {
+                //        if (installNumber >= feeData.MinimumInstallsOverThreshold && installNumber <= feeData.MaximumInstallsOverThreshold)
+                //        {
+                //            feeCostUSD = feeData.InstallFeeUSD;
+                //            break;
+                //        }
+                //    }
+
+                //    //if (feeCostUSD == 0)
+                //    //{
+                //    //    return totalFeeCostsUSD;
+                //    //}
+
+                //    totalFeeCostsUSD += feeCostUSD;
+                //}
+
+                //return totalFeeCostsUSD;
             }
             else
             {
-                return 0;
+                return (0, 0);
             }
         }
     }
